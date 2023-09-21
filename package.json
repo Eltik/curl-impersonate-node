@@ -3,10 +3,12 @@
   "version": "1.2.6",
   "description": "A wrapper around cURL-impersonate, a binary which can be used to bypass TLS fingerprinting.",
   "main": "dist/index.js",
+  "module": "index.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "test": "jest"
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "test": "bun test",
+    "lint": "prettier --write ."
   },
   "keywords": [
     "web-scraping",
@@ -17,13 +19,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@jest/globals": "^29.7.0",
-    "@types/jest": "^29.5.5",
     "@types/node": "^20.5.9",
-    "ts-jest": "^29.1.1"
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
   },
   "dependencies": {
-    "jest": "^29.7.0",
     "ts-node": "^10.9.1"
   }
 }

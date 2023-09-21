@@ -7,9 +7,7 @@
 */
 
 import * as proc from "child_process";
-import * as path from 'path';
-
-
+import * as path from "path";
 
 /*
 
@@ -36,7 +34,7 @@ interface CurlImpersonateOptions {
 export interface CurlImpersonate {
     url: string;
     options: CurlImpersonateOptions;
-    validMethods: Array<String>
+    validMethods: Array<String>;
     binary: string;
 }
 
@@ -49,10 +47,10 @@ export interface CurlResponse {
 
 export class CurlImpersonate {
     constructor(url: string, options: CurlImpersonateOptions) {
-        this.url = url
-        this.options = options
-        this.validMethods = ["GET", "POST"]
-        this.binary = ""
+        this.url = url;
+        this.options = options;
+        this.validMethods = ["GET", "POST"];
+        this.binary = "";
     }
 
     makeRequest() {
@@ -64,12 +62,12 @@ export class CurlImpersonate {
 
                 if (this.options.method == "GET") {
                     this.getRequest(flags, headers)
-                        .then(response => resolve(response))
-                        .catch(error => reject(error));
+                        .then((response) => resolve(response))
+                        .catch((error) => reject(error));
                 } else if (this.options.method == "POST") {
                     this.postRequest(flags, headers, this.options.body)
-                        .then(response => resolve(response))
-                        .catch(error => reject(error));
+                        .then((response) => resolve(response))
+                        .catch((error) => reject(error));
                 } else {
                     // Handle other HTTP methods if needed
                     reject(new Error("Unsupported HTTP method"));
@@ -83,57 +81,59 @@ export class CurlImpersonate {
     validateOptions(options: CurlImpersonateOptions) {
         if (this.validMethods.includes(options.method.toUpperCase())) {
             if (options.body !== undefined && options.method == "GET") {
-                throw new Error("Method is GET with an HTTP payload!")
+                throw new Error("Method is GET with an HTTP payload!");
             } else {
                 try {
-                    new URL(this.url)
-                    return true
+                    new URL(this.url);
+                    return true;
                 } catch {
-                    throw new Error("URL is invalid! Must have http:// or https:// !")
+                    throw new Error("URL is invalid! Must have http:// or https:// !");
                 }
             }
         } else {
-            throw new Error("Invalid Method! Valid HTTP methods are " + this.validMethods)
+            throw new Error("Invalid Method! Valid HTTP methods are " + this.validMethods);
         }
     }
     setProperBinary() {
         switch (process.platform) {
-        case "linux":
-            if (process.arch == "x64") {
-                this.binary = "curl-impersonate-chrome-linux-x86";
+            case "linux":
+                if (process.arch == "x64") {
+                    this.binary = "curl-impersonate-chrome-linux-x86";
+                    break;
+                } else if (process.arch == "arm") {
+                    this.binary = "curl-impersonate-chrome-linux-aarch64";
+                    break;
+                } else {
+                    throw new Error(`Unsupported architecture: ${process.arch}`);
+                }
+            case "darwin":
+                this.binary = "curl-impersonate-chrome-darwin-x86";
                 break;
-            } else if (process.arch == "arm") {
-                this.binary = "curl-impersonate-chrome-linux-aarch64";
-                break;
-            } else {
-                throw new Error(`Unsupported architecture: ${process.arch}`);
-            }
-        case "darwin":
-            this.binary = "curl-impersonate-chrome-darwin-x86";
-            break;
-        default:
-            throw new Error(`Unsupported Platform! ${process.platform}`)
+            default:
+                throw new Error(`Unsupported Platform! ${process.platform}`);
         }
     }
     async getRequest(flags: Array<string>, headers: string) {
         // GET REQUEST
-        let binpath = path.join(__dirname, '..', 'bin', this.binary);
-        let args = `${flags.join(' ')} ${headers} ${this.url}`;
+        let binpath = path.join(import.meta.dir, "..", "bin", this.binary);
+        let args = `${flags.join(" ")} ${headers} ${this.url}`;
         const result = proc.spawnSync(`${binpath} ${args}`, { shell: true });
         return result.stdout.toString(); // Convert the stdout buffer to a string and return it
     }
 
     async postRequest(flags: Array<string>, headers: string, body: Object | undefined) {
         // POST REQUEST
-        let binpath = path.join(__dirname, '..', 'bin', this.binary);
-        let args = `${flags.join(' ')} ${headers} -d '${JSON.stringify(body)}' ${this.url}`;
+        let binpath = path.join(import.meta.dir, "..", "bin", this.binary);
+        let args = `${flags.join(" ")} ${headers} -d '${JSON.stringify(body)}' ${this.url}`;
         const result = proc.spawnSync(`${binpath} ${args}`, { shell: true });
         return result.stdout.toString(); // Convert the stdout buffer to a string and return it
     }
 
     convertHeaderObjectToCURL() {
-        return Object.entries(this.options.headers).map(([key, value]) => `-H '${key}: ${value}'`).join(' ');
+        return Object.entries(this.options.headers)
+            .map(([key, value]) => `-H '${key}: ${value}'`)
+            .join(" ");
     }
-}   
+}
 
-export default CurlImpersonate
+export default CurlImpersonate;
